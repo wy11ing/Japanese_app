@@ -65,6 +65,11 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
 .menu-b{font-size:10px;font-weight:700;background:rgba(0,0,0,0.05);border-radius:99px;padding:2px 10px;color:var(--muted);margin-top:2px;display:inline-block;}
 .hint-box{margin:4px 16px 16px;background:rgba(232,57,90,0.07);border-radius:14px;padding:12px 16px;font-size:12px;color:#8B1A3A;font-weight:500;}
 
+/* STAT TOGGLE */
+.stat-toggle{display:flex;background:rgba(0,0,0,0.05);border-radius:12px;margin:4px 16px 8px;padding:4px;}
+.st-btn{flex:1;border:none;background:none;padding:8px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-radius:10px;transition:0.2s;}
+.st-btn.active{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+
 /* PROF LEGEND */
 .prof-legend{display:flex;gap:8px;padding:0 16px 12px;flex-wrap:wrap;}
 .pl-item{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;}
@@ -97,6 +102,7 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
 .ps-f{background:rgba(91,107,245,0.12);color:#3a4bd4;}
 .ps-o{background:rgba(245,166,35,0.12);color:#b07800;}
 .ps-u{background:rgba(232,57,90,0.1);color:var(--red);}
+.ps-n{background:rgba(0,0,0,0.05);color:var(--muted);}
 .ps-icon{font-size:16px;}
 .prof-current-label{text-align:center;font-size:12px;font-weight:600;padding:0 16px 8px;flex-shrink:0;}
 
@@ -221,6 +227,10 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
         <div class="badge-chip">JLPT N2</div>
         <h1 class="home-title">N2 学習</h1>
         <p class="home-sub">日本語能力試験 N2 完整學習 App</p>
+      </div>
+      <div class="stat-toggle">
+        <button class="st-btn active" id="st-vocab" onclick="setStatView('vocab')">單字熟練度</button>
+        <button class="st-btn" id="st-grammar" onclick="setStatView('grammar')">文法熟練度</button>
       </div>
       <div class="stats-row">
         <div class="stat-card"><span class="stat-n" id="stat-mastered">0</span><span class="stat-l">🟢 非常熟悉</span></div>
@@ -409,354 +419,15 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
   </div>
 </div>
 
+<script src="data/vocab.js"></script>
+<script src="data/grammar.js"></script>
 <script>
-// ═══════════════════════════════════════════
-// VOCABULARY DATA (60 words)
-// ═══════════════════════════════════════════
-const VOCAB = [
-  {id:1,word:"曖昧",reading:"あいまい",type:"な形容詞",meaning:"模糊、曖昧",examples:[
-    {jp:"彼の返事は曖昧だった。",zh:"他的回答很曖昧。"},
-    {jp:"曖昧な態度をとるのはよくない。",zh:"採取曖昧的態度是不好的。"},
-    {jp:"法律の解釈が曖昧で問題が生じた。",zh:"法律解釋模糊，產生了問題。"}]},
-  {id:2,word:"焦る",reading:"あせる",type:"動詞",meaning:"焦急、著急",examples:[
-    {jp:"試験が近くて焦っている。",zh:"考試快到了，我很焦急。"},
-    {jp:"仕事が終わらなくて焦った。",zh:"工作做不完，很著急。"},
-    {jp:"焦っても良い結果は出ない。",zh:"就算焦急也不會有好結果。"}]},
-  {id:3,word:"憧れ",reading:"あこがれ",type:"名詞",meaning:"憧憬、嚮往",examples:[
-    {jp:"彼女は女優への憧れを持っている。",zh:"她懷抱著成為女演員的夢想。"},
-    {jp:"その国は若者の憧れの地だ。",zh:"那個國家是年輕人嚮往的地方。"},
-    {jp:"幼い頃から医者への憧れがあった。",zh:"從小就憧憬成為醫生。"}]},
-  {id:4,word:"あっさり",reading:"あっさり",type:"副詞",meaning:"簡單地、乾脆地、清淡地",examples:[
-    {jp:"あっさりと断られた。",zh:"被乾脆地拒絕了。"},
-    {jp:"彼はあっさり諦めてしまった。",zh:"他乾脆地放棄了。"},
-    {jp:"あっさりした味の料理が好きだ。",zh:"喜歡清淡口味的料理。"}]},
-  {id:5,word:"改めて",reading:"あらためて",type:"副詞",meaning:"重新、再次、正式地",examples:[
-    {jp:"改めてお礼を申し上げます。",zh:"再次向您致謝。"},
-    {jp:"改めて確認させてください。",zh:"讓我重新確認一下。"},
-    {jp:"改めて連絡します。",zh:"我會正式與您聯繫。"}]},
-  {id:6,word:"慌てる",reading:"あわてる",type:"動詞",meaning:"慌張、驚慌",examples:[
-    {jp:"急いで慌てて出かけた。",zh:"急忙慌張地出門了。"},
-    {jp:"突然の知らせに慌てた。",zh:"突然的消息讓人慌了神。"},
-    {jp:"慌てないで落ち着いて行動しよう。",zh:"別慌張，冷靜行動吧。"}]},
-  {id:7,word:"意外",reading:"いがい",type:"な形・名詞",meaning:"意外、出乎意料",examples:[
-    {jp:"意外な結果に驚いた。",zh:"對意外的結果感到驚訝。"},
-    {jp:"彼が合格したのは意外だった。",zh:"他通過考試是出乎意料的。"},
-    {jp:"意外にも試験は簡単だった。",zh:"出乎意料地，考試很簡單。"}]},
-  {id:8,word:"一概に",reading:"いちがいに",type:"副詞",meaning:"一概（多搭配否定）",examples:[
-    {jp:"一概にはいえない。",zh:"不能一概而論。"},
-    {jp:"成功を一概にお金で測ることはできない。",zh:"不能一概以金錢衡量成功。"},
-    {jp:"彼の意見を一概に否定するのは早い。",zh:"一概否定他的意見還太早。"}]},
-  {id:9,word:"今更",reading:"いまさら",type:"副詞",meaning:"現在才、事到如今",examples:[
-    {jp:"今更後悔しても遅い。",zh:"事到如今後悔也來不及了。"},
-    {jp:"今更やり直すのは難しい。",zh:"事到如今重來很困難。"},
-    {jp:"今更そんなことを言われても困る。",zh:"事到如今才說這種話，我很困擾。"}]},
-  {id:10,word:"うっかり",reading:"うっかり",type:"副詞",meaning:"不小心、粗心地",examples:[
-    {jp:"うっかり財布を忘れた。",zh:"不小心忘記帶錢包了。"},
-    {jp:"うっかりして締め切りを過ぎた。",zh:"一不小心錯過了截止日期。"},
-    {jp:"うっかり口が滑った。",zh:"不小心說溜嘴了。"}]},
-  {id:11,word:"遠慮",reading:"えんりょ",type:"名詞・動詞",meaning:"客氣、顧慮、婉拒",examples:[
-    {jp:"ご遠慮なくどうぞ。",zh:"請不要客氣。"},
-    {jp:"遠慮がちに話した。",zh:"說話有些拘謹。"},
-    {jp:"タバコはご遠慮ください。",zh:"請勿吸菸。"}]},
-  {id:12,word:"大げさ",reading:"おおげさ",type:"な形容詞",meaning:"誇張、誇大",examples:[
-    {jp:"大げさに言いすぎる。",zh:"說得太誇張了。"},
-    {jp:"大げさな身振りで話した。",zh:"用誇張的肢體語言說話。"},
-    {jp:"少し痛いだけで大げさだよ。",zh:"只是有點痛而已，你太誇張了。"}]},
-  {id:13,word:"思い切って",reading:"おもいきって",type:"副詞",meaning:"下定決心、鼓起勇氣",examples:[
-    {jp:"思い切って告白した。",zh:"鼓起勇氣告白了。"},
-    {jp:"思い切って仕事を辞めた。",zh:"下定決心辭職了。"},
-    {jp:"思い切って新しいことに挑戦しよう。",zh:"鼓起勇氣挑戰新事物吧。"}]},
-  {id:14,word:"怠る",reading:"おこたる",type:"動詞",meaning:"怠慢、疏忽",examples:[
-    {jp:"勉強を怠ってはいけない。",zh:"不能怠慢學習。"},
-    {jp:"安全確認を怠った結果、事故が起きた。",zh:"疏忽了安全確認，結果發生了事故。"},
-    {jp:"練習を怠れば上達しない。",zh:"如果怠慢練習就不會進步。"}]},
-  {id:15,word:"恐れ",reading:"おそれ",type:"名詞",meaning:"恐懼、擔憂、可能性",examples:[
-    {jp:"失敗の恐れがある。",zh:"有失敗的可能性。"},
-    {jp:"彼女は高所への恐れを感じた。",zh:"她感到對高處的恐懼。"},
-    {jp:"台風が来る恐れがある。",zh:"有颱風來的可能性。"}]},
-  {id:16,word:"仮に",reading:"かりに",type:"副詞",meaning:"假如、即使、姑且",examples:[
-    {jp:"仮に失敗しても諦めない。",zh:"即使失敗也不放棄。"},
-    {jp:"仮にお金があっても買わない。",zh:"就算有錢也不買。"},
-    {jp:"仮の話として聞いてほしい。",zh:"請把它當作假設的話來聽。"}]},
-  {id:17,word:"かえって",reading:"かえって",type:"副詞",meaning:"反而、反倒",examples:[
-    {jp:"薬を飲んだのにかえって悪化した。",zh:"明明吃了藥，反而惡化了。"},
-    {jp:"謝ったらかえって怒られた。",zh:"道歉反而被罵了。"},
-    {jp:"休んだらかえって疲れた気がする。",zh:"休息反而感覺更累了。"}]},
-  {id:18,word:"勝手",reading:"かって",type:"な形・名詞",meaning:"任性、擅自",examples:[
-    {jp:"勝手なことを言わないでください。",zh:"請不要說任性的話。"},
-    {jp:"勝手に決めないで相談してほしい。",zh:"希望不要擅自決定，先商量一下。"},
-    {jp:"ここは勝手が分からない。",zh:"我對這裡不太熟悉。"}]},
-  {id:19,word:"かなり",reading:"かなり",type:"副詞",meaning:"相當、頗為",examples:[
-    {jp:"かなり難しい問題だ。",zh:"這是相當難的問題。"},
-    {jp:"その映画はかなり面白かった。",zh:"那部電影相當有趣。"},
-    {jp:"彼はかなり日本語が上手だ。",zh:"他的日語相當好。"}]},
-  {id:20,word:"気兼ね",reading:"きがね",type:"名詞・動詞",meaning:"顧慮、顧忌",examples:[
-    {jp:"気兼ねなく話せる友達がいる。",zh:"有可以毫無顧忌說話的朋友。"},
-    {jp:"気兼ねして言えなかった。",zh:"因為顧慮而說不出口。"},
-    {jp:"気兼ねしないでください。",zh:"請不要顧慮。"}]},
-  {id:21,word:"極めて",reading:"きわめて",type:"副詞",meaning:"極其、非常（書面語）",examples:[
-    {jp:"この問題は極めて重要だ。",zh:"這個問題極其重要。"},
-    {jp:"極めて珍しい現象が起きた。",zh:"發生了極為罕見的現象。"},
-    {jp:"彼は極めて優秀な学生だ。",zh:"他是極其優秀的學生。"}]},
-  {id:22,word:"くせに",reading:"くせに",type:"接續",meaning:"明明…卻…（帶批評語氣）",examples:[
-    {jp:"知らないくせに口を出すな。",zh:"明明不知道還多嘴。"},
-    {jp:"子どものくせに生意気だ。",zh:"明明是孩子卻很囂張。"},
-    {jp:"失敗したくせに反省しない。",zh:"明明失敗了卻不反省。"}]},
-  {id:23,word:"くれぐれも",reading:"くれぐれも",type:"副詞",meaning:"務必、千萬（請關照）",examples:[
-    {jp:"くれぐれも気をつけてください。",zh:"務必請多加小心。"},
-    {jp:"くれぐれもよろしくお伝えください。",zh:"請務必代我轉達問候。"},
-    {jp:"くれぐれも無理しないでね。",zh:"千萬不要勉強自己。"}]},
-  {id:24,word:"激しい",reading:"はげしい",type:"い形容詞",meaning:"激烈的、劇烈的",examples:[
-    {jp:"激しい雨が降っている。",zh:"正在下著大雨。"},
-    {jp:"激しい運動の後は水を飲もう。",zh:"激烈運動後要喝水。"},
-    {jp:"二人の議論は激しかった。",zh:"兩人的討論很激烈。"}]},
-  {id:25,word:"支障",reading:"ししょう",type:"名詞",meaning:"障礙、妨礙",examples:[
-    {jp:"仕事に支障をきたした。",zh:"對工作造成了障礙。"},
-    {jp:"健康に支障が出ている。",zh:"對健康造成了影響。"},
-    {jp:"支障がなければ参加したい。",zh:"如果沒有妨礙的話想要參加。"}]},
-  {id:26,word:"次第に",reading:"しだいに",type:"副詞",meaning:"逐漸地、漸漸",examples:[
-    {jp:"次第に暖かくなってきた。",zh:"逐漸變暖了。"},
-    {jp:"日本語が次第に上手になった。",zh:"日語逐漸變好了。"},
-    {jp:"痛みが次第に和らいだ。",zh:"疼痛逐漸緩解了。"}]},
-  {id:27,word:"充実",reading:"じゅうじつ",type:"名詞・動詞",meaning:"充實、豐富",examples:[
-    {jp:"充実した生活を送っている。",zh:"過著充實的生活。"},
-    {jp:"内容が充実している。",zh:"內容很充實。"},
-    {jp:"今日は充実した一日だった。",zh:"今天是充實的一天。"}]},
-  {id:28,word:"しつこい",reading:"しつこい",type:"い形容詞",meaning:"糾纏不休的、濃烈的",examples:[
-    {jp:"しつこく電話してくる。",zh:"糾纏不休地打電話來。"},
-    {jp:"この料理はしつこい味だ。",zh:"這道料理味道太濃了。"},
-    {jp:"しつこいセールスマンが来た。",zh:"來了個死纏爛打的銷售員。"}]},
-  {id:29,word:"素直",reading:"すなお",type:"な形容詞",meaning:"坦率的、聽話的、順從的",examples:[
-    {jp:"素直に謝ったほうがいい。",zh:"坦率地道歉比較好。"},
-    {jp:"彼は素直な子どもだ。",zh:"他是個聽話的孩子。"},
-    {jp:"素直に受け入れることが大切だ。",zh:"坦率接受是很重要的。"}]},
-  {id:30,word:"せっかく",reading:"せっかく",type:"副詞",meaning:"特地、好不容易",examples:[
-    {jp:"せっかく来たのに会えなかった。",zh:"特地來了卻沒能見到。"},
-    {jp:"せっかくの機会を無駄にした。",zh:"把好不容易得到的機會浪費了。"},
-    {jp:"せっかくだから一緒に行こう。",zh:"既然特地來了，就一起去吧。"}]},
-  {id:31,word:"相当",reading:"そうとう",type:"な形・副詞",meaning:"相當、相應",examples:[
-    {jp:"相当な努力が必要だ。",zh:"需要相當的努力。"},
-    {jp:"彼は相当疲れているようだ。",zh:"他看起來相當疲憊。"},
-    {jp:"その仕事には相当の経験が要る。",zh:"那份工作需要相應的經驗。"}]},
-  {id:32,word:"そもそも",reading:"そもそも",type:"副詞",meaning:"本來、原本、根本",examples:[
-    {jp:"そもそも問題の原因は何か。",zh:"問題的根本原因是什麼。"},
-    {jp:"そもそも来るつもりがなかった。",zh:"本來就沒打算來。"},
-    {jp:"そもそも無理な計画だった。",zh:"根本就是不可能的計畫。"}]},
-  {id:33,word:"たとえ",reading:"たとえ",type:"副詞",meaning:"即使、縱然（常搭配〜ても）",examples:[
-    {jp:"たとえ失敗しても諦めない。",zh:"即使失敗也不放棄。"},
-    {jp:"たとえ遅くなっても行く。",zh:"即使遲到也要去。"},
-    {jp:"たとえ雨でも試合を続ける。",zh:"就算下雨也繼續比賽。"}]},
-  {id:34,word:"ちなみに",reading:"ちなみに",type:"副詞",meaning:"順帶一提、附帶說明",examples:[
-    {jp:"ちなみに、私の名前は田中です。",zh:"順帶一提，我的名字是田中。"},
-    {jp:"ちなみに明日も休みです。",zh:"附帶說明，明天也是假日。"},
-    {jp:"ちなみにこの店は24時間営業です。",zh:"順帶一提，這家店24小時營業。"}]},
-  {id:35,word:"ついに",reading:"ついに",type:"副詞",meaning:"終於、最終",examples:[
-    {jp:"ついに夢が叶った。",zh:"夢想終於實現了。"},
-    {jp:"ついに試験に合格した。",zh:"終於通過了考試。"},
-    {jp:"ついに彼は来なかった。",zh:"他最終還是沒來。"}]},
-  {id:36,word:"つまり",reading:"つまり",type:"副詞",meaning:"也就是說、換句話說",examples:[
-    {jp:"つまり、彼は嘘をついたということだ。",zh:"也就是說，他撒謊了。"},
-    {jp:"つまりどういうことですか。",zh:"換句話說是什麼意思呢？"},
-    {jp:"つまり無理だということですね。",zh:"換句話說就是不可能吧。"}]},
-  {id:37,word:"てっきり",reading:"てっきり",type:"副詞",meaning:"還以為（實際卻不是）",examples:[
-    {jp:"てっきり彼が来ると思った。",zh:"還以為他一定會來。"},
-    {jp:"てっきり休みだと思っていた。",zh:"還以為一定是假日。"},
-    {jp:"てっきり知っていると思ったのに。",zh:"還以為你一定知道呢。"}]},
-  {id:38,word:"とにかく",reading:"とにかく",type:"副詞",meaning:"總之、反正、不管怎樣",examples:[
-    {jp:"とにかくやってみよう。",zh:"總之先試試看吧。"},
-    {jp:"とにかく安全が一番だ。",zh:"反正安全第一。"},
-    {jp:"とにかく連絡してください。",zh:"不管怎樣請先聯絡我。"}]},
-  {id:39,word:"途端に",reading:"とたんに",type:"副詞",meaning:"剛一…就…",examples:[
-    {jp:"立った途端に転んだ。",zh:"剛站起來就跌倒了。"},
-    {jp:"ドアを開けた途端に雨が降り出した。",zh:"剛打開門雨就下起來了。"},
-    {jp:"彼の顔を見た途端に笑い出した。",zh:"剛看到他的臉就笑出來了。"}]},
-  {id:40,word:"なかなか",reading:"なかなか",type:"副詞",meaning:"頗為（好）；遲遲（不）",examples:[
-    {jp:"なかなか難しい問題だ。",zh:"這是個相當難的問題。"},
-    {jp:"なかなか眠れない。",zh:"遲遲睡不著。"},
-    {jp:"彼はなかなかの腕前だ。",zh:"他相當有本事。"}]},
-  {id:41,word:"何しろ",reading:"なにしろ",type:"副詞",meaning:"畢竟、反正、因為",examples:[
-    {jp:"何しろ経験不足だから仕方ない。",zh:"畢竟是經驗不足，也沒辦法。"},
-    {jp:"何しろ急いでいるので失礼します。",zh:"反正我很趕，先失陪了。"},
-    {jp:"何しろ彼は天才だ。",zh:"畢竟他是天才嘛。"}]},
-  {id:42,word:"何となく",reading:"なんとなく",type:"副詞",meaning:"不知為何、隱約感覺",examples:[
-    {jp:"何となく不安な気がする。",zh:"不知為何有些不安。"},
-    {jp:"何となく彼が正しいと思う。",zh:"隱約感覺他是對的。"},
-    {jp:"何となく今日はうまくいきそうだ。",zh:"不知為何感覺今天會順利。"}]},
-  {id:43,word:"慣れる",reading:"なれる",type:"動詞",meaning:"習慣、熟悉",examples:[
-    {jp:"新しい環境に慣れた。",zh:"習慣了新環境。"},
-    {jp:"運転にまだ慣れていない。",zh:"還沒習慣開車。"},
-    {jp:"毎日使うと自然と慣れる。",zh:"每天使用自然就會習慣。"}]},
-  {id:44,word:"把握",reading:"はあく",type:"名詞・動詞",meaning:"掌握、理解",examples:[
-    {jp:"状況を把握してください。",zh:"請掌握情況。"},
-    {jp:"問題点を把握するのが先決だ。",zh:"先掌握問題點是當務之急。"},
-    {jp:"全体像が把握できていない。",zh:"還沒能掌握整體面貌。"}]},
-  {id:45,word:"抜群",reading:"ばつぐん",type:"な形・名詞",meaning:"出色、超群、突出",examples:[
-    {jp:"彼女は成績が抜群だ。",zh:"她的成績出色。"},
-    {jp:"抜群の才能を持っている。",zh:"擁有超群的才能。"},
-    {jp:"味が抜群においしい。",zh:"味道出色地好吃。"}]},
-  {id:46,word:"批判",reading:"ひはん",type:"名詞・動詞",meaning:"批判、批評",examples:[
-    {jp:"政府の政策を批判した。",zh:"批判了政府的政策。"},
-    {jp:"批判を受け入れることが大切だ。",zh:"接受批評是重要的。"},
-    {jp:"彼の行動は多くの批判を受けた。",zh:"他的行動受到了很多批評。"}]},
-  {id:47,word:"ふと",reading:"ふと",type:"副詞",meaning:"突然、忽然（無意識地）",examples:[
-    {jp:"ふと昔のことを思い出した。",zh:"忽然想起了以前的事。"},
-    {jp:"ふと気づいたら終わっていた。",zh:"突然發現已經結束了。"},
-    {jp:"散歩中にふといい考えが浮かんだ。",zh:"散步時忽然想到了好主意。"}]},
-  {id:48,word:"まさか",reading:"まさか",type:"副詞",meaning:"怎麼可能、沒想到",examples:[
-    {jp:"まさか彼が来るとは思わなかった。",zh:"沒想到他會來。"},
-    {jp:"まさかこんなことになるとは。",zh:"怎麼可能變成這樣。"},
-    {jp:"まさか失敗するとは夢にも思わなかった。",zh:"做夢都沒想到會失敗。"}]},
-  {id:49,word:"真っ先に",reading:"まっさきに",type:"副詞",meaning:"最先、首先",examples:[
-    {jp:"真っ先に手を挙げた。",zh:"最先舉起了手。"},
-    {jp:"彼は真っ先に到着した。",zh:"他最先抵達。"},
-    {jp:"緊急時には真っ先に逃げる。",zh:"緊急時最先逃跑。"}]},
-  {id:50,word:"見直す",reading:"みなおす",type:"動詞",meaning:"重新審視、重新評估",examples:[
-    {jp:"計画を見直す必要がある。",zh:"有必要重新審視計畫。"},
-    {jp:"答案を見直してから提出した。",zh:"重新確認答案後提交了。"},
-    {jp:"彼に対する評価を見直した。",zh:"重新評估了對他的評價。"}]},
-  {id:51,word:"めったに",reading:"めったに",type:"副詞",meaning:"很少、難得（常搭配否定）",examples:[
-    {jp:"めったに怒らない人だ。",zh:"是個很少發火的人。"},
-    {jp:"彼にはめったに会えない。",zh:"很難得才能見到他。"},
-    {jp:"こんなチャンスはめったにない。",zh:"這樣的機會很難得。"}]},
-  {id:52,word:"もともと",reading:"もともと",type:"副詞",meaning:"本來、原本",examples:[
-    {jp:"もともと行くつもりはなかった。",zh:"本來就沒打算去。"},
-    {jp:"もともとこの建物は工場だった。",zh:"這棟建築原本是工廠。"},
-    {jp:"もともと仲が良くなかった。",zh:"原本關係就不好。"}]},
-  {id:53,word:"やはり",reading:"やはり",type:"副詞",meaning:"果然、還是、畢竟",examples:[
-    {jp:"やはり彼が正しかった。",zh:"果然他是對的。"},
-    {jp:"やはり日本語は難しい。",zh:"果然日語還是很難。"},
-    {jp:"やはり家が一番落ち着く。",zh:"果然還是家裡最令人放鬆。"}]},
-  {id:54,word:"余裕",reading:"よゆう",type:"名詞",meaning:"餘裕、從容、寬裕",examples:[
-    {jp:"時間的な余裕がない。",zh:"沒有時間上的餘裕。"},
-    {jp:"経済的な余裕ができた。",zh:"經濟上有了餘裕。"},
-    {jp:"余裕を持って行動しよう。",zh:"從容地行動吧。"}]},
-  {id:55,word:"割に",reading:"わりに",type:"副詞",meaning:"相對地、出乎意料地",examples:[
-    {jp:"難しいわりに点数が良かった。",zh:"雖然難，但成績出乎意料地好。"},
-    {jp:"値段のわりに品質が良い。",zh:"相對於價格，品質很好。"},
-    {jp:"若いわりに落ち着いている。",zh:"相對於年齡，很沉穩。"}]},
-  {id:56,word:"あえて",reading:"あえて",type:"副詞",meaning:"特意、敢於、故意",examples:[
-    {jp:"あえて難しい道を選んだ。",zh:"特意選擇了難走的路。"},
-    {jp:"あえて反対意見を言った。",zh:"敢於說出反對意見。"},
-    {jp:"あえて触れないようにした。",zh:"故意不去碰這個話題。"}]},
-  {id:57,word:"大抵",reading:"たいてい",type:"副詞",meaning:"大多、通常、大致",examples:[
-    {jp:"週末は大抵家にいる。",zh:"週末大多在家。"},
-    {jp:"大抵の問題は解決できる。",zh:"大多數的問題都能解決。"},
-    {jp:"彼は大抵遅れてくる。",zh:"他通常都會遲到。"}]},
-  {id:58,word:"徐々に",reading:"じょじょに",type:"副詞",meaning:"逐漸地、緩緩地",examples:[
-    {jp:"徐々に回復している。",zh:"正在逐漸恢復。"},
-    {jp:"景気が徐々に良くなってきた。",zh:"景氣逐漸好轉了。"},
-    {jp:"徐々に日本語が分かるようになった。",zh:"逐漸能聽懂日語了。"}]},
-  {id:59,word:"いずれ",reading:"いずれ",type:"副詞",meaning:"遲早、總有一天；哪個",examples:[
-    {jp:"いずれ分かる日が来る。",zh:"總有一天會明白的。"},
-    {jp:"いずれにせよ結果は同じだ。",zh:"無論哪個結果都一樣。"},
-    {jp:"いずれまた会いましょう。",zh:"我們遲早還會再見的。"}]},
-  {id:60,word:"のんびり",reading:"のんびり",type:"副詞",meaning:"悠閒地、輕鬆地",examples:[
-    {jp:"休日はのんびり過ごしたい。",zh:"假日想悠閒地度過。"},
-    {jp:"のんびりした性格だ。",zh:"性格很悠閒。"},
-    {jp:"田舎でのんびり暮らしたい。",zh:"想在鄉下悠閒地生活。"}]}
-];
-
-// ═══════════════════════════════════════════
-// GRAMMAR DATA (30 patterns)
-// ═══════════════════════════════════════════
-const GRAMMAR = [
-  {id:1,pattern:"〜にもかかわらず",meaning:"儘管…、雖然…卻…",structure:"名詞／動詞普通形＋にもかかわらず",
-   explanation:"表示逆接，前項是某種不利情況，後項出現與期待相反的結果。語氣較書面。",
-   examples:[{jp:"雨にもかかわらず、試合は行われた。",zh:"儘管下雨，比賽仍然舉行了。"},{jp:"努力したにもかかわらず、失敗した。",zh:"儘管努力了，卻還是失敗了。"},{jp:"反対意見にもかかわらず、計画は進んだ。",zh:"儘管有反對意見，計畫仍然推進了。"}],similar:"〜のに、〜ながらも"},
-  {id:2,pattern:"〜に対して",meaning:"對於…；與…相比",structure:"名詞＋に対して",
-   explanation:"表示對象或方向；也可表示對比，說明兩者的差異。",
-   examples:[{jp:"先生の質問に対して答えた。",zh:"對老師的問題作出了回答。"},{jp:"子供に対して優しく接してください。",zh:"請對孩子溫柔地接待。"},{jp:"兄が内向的なのに対して、弟は社交的だ。",zh:"哥哥內向，相比之下弟弟很外向。"}],similar:"〜について、〜向けに"},
-  {id:3,pattern:"〜をはじめとして",meaning:"以…為首、包括…在內",structure:"名詞＋をはじめとして／をはじめ",
-   explanation:"列舉代表性事物，表示「以某人/事物為代表，其他也包含在內」。",
-   examples:[{jp:"東京をはじめとして、全国で開催される。",zh:"以東京為首，在全國各地舉辦。"},{jp:"山田さんをはじめ、チーム全員が参加した。",zh:"以山田先生為首，整個團隊都參加了。"},{jp:"日本語をはじめ、英語も勉強している。",zh:"包括日語在內，也在學英語。"}],similar:"〜など、〜を含めて"},
-  {id:4,pattern:"〜ながらも",meaning:"雖然…但是…",structure:"動詞ます形／な形語幹／い形＋ながらも",
-   explanation:"表示逆接，前後狀態相互矛盾。比「ながら」更強調對比，常用於書面。",
-   examples:[{jp:"忙しいながらも、楽しく仕事をしている。",zh:"雖然很忙，但工作得很開心。"},{jp:"小さいながらも立派な家だ。",zh:"雖然小卻是棟像樣的房子。"},{jp:"不安ながらも、挑戦することにした。",zh:"雖然不安，還是決定挑戰。"}],similar:"〜けれども、〜にもかかわらず"},
-  {id:5,pattern:"〜に加えて",meaning:"除…之外、加上…",structure:"名詞＋に加えて",
-   explanation:"表示在某事物基礎上再添加其他內容，帶有「累加」的語感。",
-   examples:[{jp:"実力に加えて、運も必要だ。",zh:"除了實力之外，運氣也是必要的。"},{jp:"雨に加えて、風も強くなってきた。",zh:"除了下雨，風也變強了。"},{jp:"経験に加えて、資格も持っている。",zh:"除了經驗，還擁有證照。"}],similar:"〜のほかに、〜だけでなく"},
-  {id:6,pattern:"〜ものの",meaning:"雖然…但是…",structure:"普通形／な形語幹な＋ものの",
-   explanation:"表示逆接，前項是已確認事實，後項是與之相反的情況。語氣書面。",
-   examples:[{jp:"資格を取ったものの、使う機会がない。",zh:"雖然取得了資格，但沒有機會使用。"},{jp:"日本語を勉強したものの、まだ話せない。",zh:"雖然學了日語，但還不能說。"},{jp:"やる気があるものの、時間がない。",zh:"雖然有幹勁，但沒有時間。"}],similar:"〜が、〜けれど"},
-  {id:7,pattern:"〜からといって",meaning:"不能因為…就…",structure:"普通形＋からといって",
-   explanation:"表示某理由不足以成為後項行為的正當理由，後項常接否定或批評表達。",
-   examples:[{jp:"お金があるからといって、幸せとは限らない。",zh:"不能因為有錢就說一定幸福。"},{jp:"忙しいからといって、食事を抜くのはよくない。",zh:"不能因為忙就不吃飯。"},{jp:"若いからといって、無謀なことをしてはいけない。",zh:"不能因為年輕就做魯莽的事。"}],similar:"〜からって（口語）"},
-  {id:8,pattern:"〜に反して",meaning:"違反…、與…相反",structure:"名詞＋に反して",
-   explanation:"表示實際情況與期待、規定、預測相反。",
-   examples:[{jp:"予想に反して、試験は簡単だった。",zh:"與預期相反，考試很簡單。"},{jp:"規則に反して行動した。",zh:"違反規定行動了。"},{jp:"親の期待に反して、医者にならなかった。",zh:"違背了父母的期望，沒有成為醫生。"}],similar:"〜に対して、〜とは逆に"},
-  {id:9,pattern:"〜に過ぎない",meaning:"不過是…、只不過是…",structure:"名詞／普通形＋に過ぎない",
-   explanation:"表示程度輕微或範圍有限，帶有輕描淡寫或客觀評價的語氣。",
-   examples:[{jp:"これは冗談に過ぎない。",zh:"這不過是個玩笑。"},{jp:"彼はただの学生に過ぎない。",zh:"他只不過是個學生。"},{jp:"それは一つの可能性に過ぎない。",zh:"那只不過是一種可能性。"}],similar:"〜だけだ、〜しかない"},
-  {id:10,pattern:"〜に際して",meaning:"在…之際、當…的時候",structure:"名詞／動詞辞書形＋に際して",
-   explanation:"表示在某重要時機點採取行動。語氣正式，常用於儀式、重要場合。",
-   examples:[{jp:"入学に際して、準備が必要だ。",zh:"在入學之際，需要做準備。"},{jp:"式典に際して挨拶をした。",zh:"在典禮之際致了詞。"},{jp:"渡航に際して注意事項を確認した。",zh:"在出行之際確認了注意事項。"}],similar:"〜にあたって、〜のとき"},
-  {id:11,pattern:"〜とともに",meaning:"隨著…；與…一起",structure:"名詞／動詞辞書形＋とともに",
-   explanation:"表示兩件事同時進行，或「伴隨著某變化，另一件事也相應變化」。",
-   examples:[{jp:"時代とともに文化も変わる。",zh:"隨著時代，文化也在改變。"},{jp:"友達とともに旅をした。",zh:"與朋友一起旅行了。"},{jp:"経済の発展とともに問題も増えた。",zh:"隨著經濟發展，問題也增加了。"}],similar:"〜と同時に、〜につれて"},
-  {id:12,pattern:"〜にしたがって",meaning:"隨著…；遵從…",structure:"名詞／動詞辞書形＋にしたがって",
-   explanation:"表示隨著某事物的進展，另一件事也相應地變化；也可表示遵從指示。",
-   examples:[{jp:"年をとるにしたがって、体力が落ちた。",zh:"隨著年齡增長，體力也下降了。"},{jp:"指示にしたがって行動した。",zh:"遵從指示行動了。"},{jp:"学習が進むにしたがって、難しくなる。",zh:"隨著學習推進，會變得更難。"}],similar:"〜につれて、〜に応じて"},
-  {id:13,pattern:"〜末に",meaning:"經過…之後（終於）",structure:"名詞の／動詞た形＋末に",
-   explanation:"表示經過長時間或種種過程後，最終達到某結果。通常用於重大決定。",
-   examples:[{jp:"長い議論の末に、決定が下された。",zh:"在長時間討論之後，終於作出了決定。"},{jp:"悩んだ末に、退職することにした。",zh:"苦惱了很久之後，決定辭職了。"},{jp:"調査の末に真実が明らかになった。",zh:"經過調查，真相終於明朗了。"}],similar:"〜あげく（負面）、〜た結果"},
-  {id:14,pattern:"〜あげく",meaning:"（費盡心思）最終卻…",structure:"名詞の／動詞た形＋あげく",
-   explanation:"表示歷盡辛苦後，最終（往往是壞的）結果。帶有負面語氣，不滿意的感覺。",
-   examples:[{jp:"考えたあげく、断ることにした。",zh:"想了半天，最終決定拒絕了。"},{jp:"喧嘩したあげく、別れてしまった。",zh:"吵了半天，最終還是分手了。"},{jp:"迷ったあげく、決断できなかった。",zh:"猶豫了半天，最終還是無法決斷。"}],similar:"〜末に（中性）"},
-  {id:15,pattern:"〜かねない",meaning:"說不定會…（壞事）",structure:"動詞ます形＋かねない",
-   explanation:"表示有可能發生不好的事情，帶有警戒、擔憂的語氣。主語通常是第三人稱。",
-   examples:[{jp:"このまま続けると体を壊しかねない。",zh:"這樣繼續下去說不定會搞壞身體。"},{jp:"油断すると失敗しかねない。",zh:"一旦大意就有可能失敗。"},{jp:"あの人なら嘘をつきかねない。",zh:"那個人說不定會撒謊。"}],similar:"〜おそれがある"},
-  {id:16,pattern:"〜かねる",meaning:"難以…、不便…（婉拒）",structure:"動詞ます形＋かねる",
-   explanation:"表示在情感上或道義上難以做某事，常作為禮貌的拒絕表達。",
-   examples:[{jp:"その要求には応じかねます。",zh:"難以應對那個要求。"},{jp:"一人では決めかねる問題だ。",zh:"是個一個人難以決定的問題。"},{jp:"賛成しかねる意見だ。",zh:"是個難以贊同的意見。"}],similar:"〜ことができない（直接）"},
-  {id:17,pattern:"〜ことから",meaning:"由於…、因為…（作為理由）",structure:"普通形＋ことから",
-   explanation:"表示後項判斷的根據或名稱由來的理由，是客觀性的說明。",
-   examples:[{jp:"雪が多いことから、この地方は「雪の里」と呼ばれる。",zh:"由於雪量多，這個地方被稱為「雪之鄉」。"},{jp:"試験に合格したことから、自信が生まれた。",zh:"由於通過了考試，產生了自信。"},{jp:"毎日練習することから、上手になった。",zh:"由於每天練習，變得熟練了。"}],similar:"〜ので、〜ため"},
-  {id:18,pattern:"〜ことなく",meaning:"不…地、沒有…地",structure:"動詞辞書形＋ことなく",
-   explanation:"表示在不做某事的狀態下進行後項行為。語氣書面。",
-   examples:[{jp:"休むことなく働き続けた。",zh:"沒有休息地持續工作。"},{jp:"諦めることなく挑戦した。",zh:"沒有放棄地持續挑戰。"},{jp:"遅れることなく届いた。",zh:"沒有延遲地送達了。"}],similar:"〜ないで、〜ずに"},
-  {id:19,pattern:"〜に違いない",meaning:"一定是…、肯定是…",structure:"普通形＋に違いない",
-   explanation:"表示說話者對某事有強烈的確信，語氣比「〜と思う」更肯定。",
-   examples:[{jp:"彼は怒っているに違いない。",zh:"他一定是生氣了。"},{jp:"あの店は高いに違いない。",zh:"那家店肯定很貴。"},{jp:"合格するに違いない。",zh:"一定能合格的。"}],similar:"〜はずだ（推斷）、〜だろう"},
-  {id:20,pattern:"〜ばかりでなく",meaning:"不只是…、不僅…而且…",structure:"普通形／名詞＋ばかりでなく",
-   explanation:"表示不僅前項，後項也同樣適用。強調範圍的擴大或添加。",
-   examples:[{jp:"彼は頭がいいばかりでなく、運動も得意だ。",zh:"他不只是頭腦好，運動也很擅長。"},{jp:"日本語ばかりでなく、英語も話せる。",zh:"不只是日語，英語也會說。"},{jp:"健康ばかりでなく、精神的な面も大切だ。",zh:"不只是健康，精神層面也很重要。"}],similar:"〜だけでなく、〜のみならず"},
-  {id:21,pattern:"〜わけだ",meaning:"難怪…；也就是說…",structure:"普通形＋わけだ",
-   explanation:"表示對某事情作出合乎邏輯的說明或解釋，「原來如此」的感覺。",
-   examples:[{jp:"毎日練習したから上手になったわけだ。",zh:"每天練習，所以難怪變好了。"},{jp:"昨日は徹夜したから疲れているわけだ。",zh:"昨天熬夜了，所以難怪很疲憊。"},{jp:"つまり、失敗したというわけだ。",zh:"也就是說，失敗了。"}],similar:"〜はずだ、〜ということだ"},
-  {id:22,pattern:"〜わけではない",meaning:"並不是說…、不一定…",structure:"普通形＋わけではない",
-   explanation:"部分否定，表示並非完全如此。常用於糾正對方的誤解。",
-   examples:[{jp:"嫌いなわけではない。",zh:"並不是說討厭。"},{jp:"諦めたわけではない。",zh:"並不是說放棄了。"},{jp:"いつも元気なわけではない。",zh:"並不是說總是精神好。"}],similar:"〜というわけではない、〜とは限らない"},
-  {id:23,pattern:"〜に限らず",meaning:"不限於…、不只是…",structure:"名詞＋に限らず",
-   explanation:"表示不僅限於前項，還包含其他情況。",
-   examples:[{jp:"子供に限らず、大人も楽しめる。",zh:"不只是孩子，大人也能享受。"},{jp:"日本に限らず、世界中で問題になっている。",zh:"不只是日本，全世界都成了問題。"},{jp:"女性に限らず、男性にも人気がある。",zh:"不只是女性，男性之間也很受歡迎。"}],similar:"〜だけでなく、〜ばかりでなく"},
-  {id:24,pattern:"〜に限って",meaning:"偏偏…；只有…才",structure:"名詞＋に限って",
-   explanation:"表示「偏偏在這種情況下」，常帶有諷刺或意外的語氣；也可表示「只有某人才…」。",
-   examples:[{jp:"急いでいるときに限って、電車が遅れる。",zh:"偏偏在趕時間的時候電車誤點。"},{jp:"彼に限ってそんなことはないと思う。",zh:"我認為偏偏是他不會做那種事。"},{jp:"この店は会員に限って割引がある。",zh:"這家店只有會員才有折扣。"}],similar:"〜の場合のみ"},
-  {id:25,word:"〜つつ",pattern:"〜つつ",meaning:"一邊…一邊…；雖然…卻…",structure:"動詞ます形＋つつ",
-   explanation:"表示兩個動作同時進行；也可表示知道某事卻做相反的行為（逆接）。",
-   examples:[{jp:"音楽を聴きつつ勉強した。",zh:"一邊聽音樂一邊學習。"},{jp:"悪いと知りつつも続けてしまった。",zh:"明知不好卻還是繼續了。"},{jp:"考えつつ歩いた。",zh:"一邊思考一邊走路。"}],similar:"〜ながら、〜つつも"},
-  {id:26,pattern:"〜ものだ",meaning:"（本來）應該…；真是…啊",structure:"動詞普通形／名詞＋ものだ",
-   explanation:"表示一般常識或道理（「本來就該…」）；也可表示感嘆。",
-   examples:[{jp:"子供はよく泣くものだ。",zh:"孩子本來就常常哭的。"},{jp:"昔はよく遊んだものだ。",zh:"以前真的常常玩啊。"},{jp:"人は失敗から学ぶものだ。",zh:"人本來就是從失敗中學習的。"}],similar:"〜はずだ、〜べきだ"},
-  {id:27,pattern:"〜にすぎない",meaning:"不過是…、只不過是…",structure:"名詞／普通形＋にすぎない",
-   explanation:"表示程度輕微，有「只是而已」的語氣，強調某事並不重要或不特別。",
-   examples:[{jp:"これは始まりにすぎない。",zh:"這不過是個開始。"},{jp:"私はただ事実を言ったにすぎない。",zh:"我只不過說了事實而已。"},{jp:"10%の改善にすぎなかった。",zh:"不過只改善了10%。"}],similar:"〜に過ぎない（同）、〜だけだ"},
-  {id:28,pattern:"〜からすると",meaning:"從…來看、以…的角度來看",structure:"名詞＋からすると／からすれば",
-   explanation:"表示從某立場或基準來判斷，常用於提出某方的觀點。",
-   examples:[{jp:"彼の立場からすると、仕方がない。",zh:"從他的立場來看，也是沒辦法的。"},{jp:"外見からすると若く見える。",zh:"從外表來看，看起來很年輕。"},{jp:"経験からすると、これは難しい。",zh:"從經驗來看，這很困難。"}],similar:"〜からみると、〜の立場では"},
-  {id:29,pattern:"〜に応じて",meaning:"根據…、按照…",structure:"名詞＋に応じて",
-   explanation:"表示按照前項的變化或情況，後項也相應調整或對應。",
-   examples:[{jp:"需要に応じて生産量を調整する。",zh:"根據需求調整生產量。"},{jp:"実力に応じた仕事を与える。",zh:"給予與實力相應的工作。"},{jp:"状況に応じて判断してください。",zh:"請根據情況判斷。"}],similar:"〜にしたがって、〜次第で"},
-  {id:30,pattern:"〜てしかたがない",meaning:"…得不得了、非常…",structure:"動詞て形／い形くて／な形で＋しかたがない",
-   explanation:"表示某種情感或感覺強烈到無法控制，無法抑制的程度。",
-   examples:[{jp:"眠くてしかたがない。",zh:"困得不得了。"},{jp:"心配でしかたがない。",zh:"擔心得不得了。"},{jp:"合格して嬉しくてしかたがない。",zh:"合格了，高興得不得了。"}],similar:"〜てたまらない、〜てならない"}
-];
-
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
 let proficiency = {}; // id -> 'mastered'|'familiar'|'ok'|'unknown'
 let grammarProf = {};
+let currentStatView = 'vocab';
 let vcIdx = 0;
 let vcFlipped = false;
 
@@ -795,19 +466,42 @@ function showScreen(id){
 }
 function goHome(){ showScreen('scr-home'); updateHomeStats(); }
 
+function setStatView(view){
+  currentStatView = view;
+  document.getElementById('st-vocab').classList.toggle('active', view==='vocab');
+  document.getElementById('st-grammar').classList.toggle('active', view==='grammar');
+  updateHomeStats();
+}
+
 function updateHomeStats(){
   let m=0,f=0,o=0,u=0,weak=0;
-  VOCAB.forEach(v=>{
-    const p=proficiency[v.id]||'none';
-    if(p==='mastered')m++;
-    else if(p==='familiar')f++;
-    else if(p==='ok')o++;
-    else if(p==='unknown'){u++;weak++;}
-  });
+  if(currentStatView === 'vocab'){
+    VOCAB.forEach(v=>{
+      const p=proficiency[v.id]||'none';
+      if(p==='mastered')m++;
+      else if(p==='familiar')f++;
+      else if(p==='ok')o++;
+      else if(p==='unknown'){u++;}
+    });
+    // Weak count is always combined for the badge on the card, but let's see
+    VOCAB.forEach(v=>{ if((proficiency[v.id]||'none')==='unknown'||(proficiency[v.id]||'none')==='ok') weak++; });
+    GRAMMAR.forEach(g=>{ if((grammarProf[g.id]||'none')==='unknown'||(grammarProf[g.id]||'none')==='ok') weak++; });
+  } else {
+    GRAMMAR.forEach(g=>{
+      const p=grammarProf[g.id]||'none';
+      if(p==='mastered')m++;
+      else if(p==='familiar')f++;
+      else if(p==='ok')o++;
+      else if(p==='unknown'){u++;}
+    });
+    VOCAB.forEach(v=>{ if((proficiency[v.id]||'none')==='unknown'||(proficiency[v.id]||'none')==='ok') weak++; });
+    GRAMMAR.forEach(g=>{ if((grammarProf[g.id]||'none')==='unknown'||(grammarProf[g.id]||'none')==='ok') weak++; });
+  }
+  
   document.getElementById('stat-mastered').textContent=m;
   document.getElementById('stat-familiar').textContent=f;
   document.getElementById('stat-unknown').textContent=u;
-  document.getElementById('mb-weak').textContent=weak+'語';
+  document.getElementById('mb-weak').textContent=weak+'項';
 }
 
 // ═══════════════════════════════════════════
@@ -926,16 +620,19 @@ function showVocabDetail(id){
       </div>`).join('')}
     </div>
     <div class="gd-label" style="padding:4px 0 6px;">熟練度を設定する</div>
-    <div class="prof-sel" style="padding:0;margin-bottom:4px;">
+    <div class="prof-sel" style="padding:0;margin-bottom:4px;flex-wrap:wrap;">
       <button class="ps-btn ps-m" onclick="setVocabProfDetail(${v.id},'mastered')"><span class="ps-icon">🟢</span><span>非常熟悉</span></button>
       <button class="ps-btn ps-f" onclick="setVocabProfDetail(${v.id},'familiar')"><span class="ps-icon">🔵</span><span>熟悉</span></button>
       <button class="ps-btn ps-o" onclick="setVocabProfDetail(${v.id},'ok')"><span class="ps-icon">🟡</span><span>還行</span></button>
       <button class="ps-btn ps-u" onclick="setVocabProfDetail(${v.id},'unknown')"><span class="ps-icon">🔴</span><span>不熟</span></button>
+      <button class="ps-btn ps-n" onclick="setVocabProfDetail(${v.id},'none')" style="flex:1 0 100%; margin-top:8px;"><span class="ps-icon">⚪</span><span>尚未學習 (重置)</span></button>
     </div>
   `;
 }
 function setVocabProfDetail(id,level){
-  proficiency[id]=level; saveState();
+  if(level==='none') delete proficiency[id];
+  else proficiency[id]=level;
+  saveState();
   showVocabDetail(id);
 }
 
@@ -997,15 +694,20 @@ function showGrammarDetail(id){
       <div class="gd-similar">${g.similar}</div>
     </div>
     <div class="gd-label" style="padding:4px 0 6px;">熟練度を設定する</div>
-    <div class="prof-sel" style="padding:0;margin-bottom:4px;">
+    <div class="prof-sel" style="padding:0;margin-bottom:4px;flex-wrap:wrap;">
       <button class="ps-btn ps-m" onclick="setGrammarProfDetail(${g.id},'mastered')"><span class="ps-icon">🟢</span><span>非常熟悉</span></button>
       <button class="ps-btn ps-f" onclick="setGrammarProfDetail(${g.id},'familiar')"><span class="ps-icon">🔵</span><span>熟悉</span></button>
       <button class="ps-btn ps-o" onclick="setGrammarProfDetail(${g.id},'ok')"><span class="ps-icon">🟡</span><span>還行</span></button>
       <button class="ps-btn ps-u" onclick="setGrammarProfDetail(${g.id},'unknown')"><span class="ps-icon">🔴</span><span>不熟</span></button>
+      <button class="ps-btn ps-n" onclick="setGrammarProfDetail(${g.id},'none')" style="flex:1 0 100%; margin-top:8px;"><span class="ps-icon">⚪</span><span>尚未學習 (重置)</span></button>
     </div>
   `;
 }
-function setGrammarProfDetail(id,level){ grammarProf[id]=level; saveState(); showGrammarDetail(id); }
+function setGrammarProfDetail(id,level){ 
+  if(level==='none') delete grammarProf[id];
+  else grammarProf[id]=level; 
+  saveState(); showGrammarDetail(id); 
+}
 
 // ═══════════════════════════════════════════
 // WEAK REVIEW
@@ -1117,7 +819,23 @@ function renderGQ(){
     <div class="qz-card qz-gram">
       <div class="qz-gram-meaning">${q.meaning}</div>
       <div class="qz-ask" style="margin-bottom:10px;">意味に合う文法パターンは？</div>
-      ${ex.map(e=>`<div class="qz-ex"><div class="qz-ex-jp">${e.jp}</div><div class="qz-ex-zh">${e.zh}</div></div>`).join('')}
+      ${ex.map(e=>{
+        const parts = q.pattern.split(/[〜~～…\s\+]+/).filter(p => p.length > 0);
+        let blanked = e.jp;
+        parts.forEach(p => {
+          let search = p;
+          if (!blanked.includes(search)) {
+            for (let len = search.length - 1; len >= 2; len--) {
+              let partial = search.substring(0, len);
+              if (blanked.includes(partial)) { search = partial; break; }
+            }
+          }
+          if (search.length >= 2 || parts.length === 1) {
+            blanked = blanked.split(search).join('（ ___ ）');
+          }
+        });
+        return `<div class="qz-ex"><div class="qz-ex-jp">${blanked}</div><div class="qz-ex-zh">${e.zh}</div></div>`;
+      }).join('')}
     </div>
     <div class="opts">${opts.map(o=>`<button class="opt-btn sm" onclick="pickGQ(this,'${o.replace(/'/g,"\\'")}','${q.pattern.replace(/'/g,"\\'")}',${q.id})">${o}</button>`).join('')}</div>
     <div id="gq-reveal"></div>`;
