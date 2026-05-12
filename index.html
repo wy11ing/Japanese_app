@@ -26,7 +26,7 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
 /* SCREENS */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--cream);overflow:hidden;}
 .screen.hidden{display:none;}
-.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:90px;}
+.scroll-area{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:90px;}
 .scroll-area::-webkit-scrollbar{display:none;}
 
 /* TOP BAR */
@@ -47,10 +47,12 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
 .badge-chip{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:4px 14px;border-radius:99px;margin-bottom:12px;}
 .home-title{font-family:'Zen Kaku Gothic New',sans-serif;font-size:40px;font-weight:900;color:#fff;line-height:1;letter-spacing:-1px;}
 .home-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px;}
-.stats-row{display:flex;gap:10px;padding:14px 16px 8px;}
-.stat-card{flex:1;background:#fff;border-radius:18px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:var(--shadow);}
-.stat-n{font-family:'Zen Kaku Gothic New',sans-serif;font-size:24px;font-weight:900;color:var(--red);}
-.stat-l{font-size:10px;color:var(--muted);}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:14px 16px 8px;}
+.stat-card{background:#fff;border:none;border-radius:14px;padding:10px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:var(--shadow);cursor:pointer;font-family:inherit;color:inherit;transition:transform 0.1s;}
+.stat-card:active{transform:scale(0.94);}
+.stat-em{font-size:16px;line-height:1;}
+.stat-n{font-family:'Zen Kaku Gothic New',sans-serif;font-size:20px;font-weight:900;color:var(--red);line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);text-align:center;line-height:1.2;}
 .section-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;padding:8px 16px 4px;}
 .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 12px;}
 .menu-card{background:#fff;border:none;border-radius:20px;padding:16px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:flex-start;box-shadow:var(--shadow);text-align:left;width:100%;transition:transform 0.12s;}
@@ -123,10 +125,10 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
 .seen-pill{background:rgba(0,0,0,0.06);border-radius:99px;padding:6px 10px;font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;}
 
 /* LIST SCREENS */
-.search-wrap{padding:10px 16px 6px;}
+.search-wrap{padding:10px 16px 6px;flex-shrink:0;}
 .search-input{width:100%;padding:11px 16px;background:#fff;border:1.5px solid var(--border);border-radius:14px;font-size:14px;color:var(--ink);outline:none;font-family:'Noto Sans JP',sans-serif;}
 .search-input:focus{border-color:var(--purple);}
-.filter-row{display:flex;gap:6px;padding:6px 16px 8px;overflow-x:auto;scrollbar-width:none;}
+.filter-row{display:flex;gap:6px;padding:6px 16px 8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
 .filter-row::-webkit-scrollbar{display:none;}
 .filter-chip{padding:6px 14px;border-radius:99px;border:none;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:rgba(0,0,0,0.06);color:var(--muted);}
 .filter-chip.fc-active{background:var(--red);color:#fff;}
@@ -233,9 +235,11 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
         <button class="st-btn" id="st-grammar" onclick="setStatView('grammar')">文法熟練度</button>
       </div>
       <div class="stats-row">
-        <div class="stat-card"><span class="stat-n" id="stat-mastered">0</span><span class="stat-l">🟢 非常熟悉</span></div>
-        <div class="stat-card"><span class="stat-n" id="stat-familiar">0</span><span class="stat-l">🔵 熟悉</span></div>
-        <div class="stat-card"><span class="stat-n" id="stat-unknown">0</span><span class="stat-l">🔴 不熟</span></div>
+        <button class="stat-card" onclick="jumpToFiltered('mastered')"><span class="stat-em">🟢</span><span class="stat-n" id="stat-mastered">0</span><span class="stat-l">非常熟悉</span></button>
+        <button class="stat-card" onclick="jumpToFiltered('familiar')"><span class="stat-em">🔵</span><span class="stat-n" id="stat-familiar">0</span><span class="stat-l">熟悉</span></button>
+        <button class="stat-card" onclick="jumpToFiltered('ok')"><span class="stat-em">🟡</span><span class="stat-n" id="stat-ok">0</span><span class="stat-l">還行</span></button>
+        <button class="stat-card" onclick="jumpToFiltered('unknown')"><span class="stat-em">🔴</span><span class="stat-n" id="stat-unknown">0</span><span class="stat-l">不熟</span></button>
+        <button class="stat-card" onclick="jumpToFiltered('none')"><span class="stat-em">⚪</span><span class="stat-n" id="stat-none">0</span><span class="stat-l">未學</span></button>
       </div>
       <div class="section-label">單字・文法</div>
       <div class="menu-grid">
@@ -243,19 +247,19 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
           <div class="menu-em">🃏</div>
           <span class="menu-t">単語カード</span>
           <span class="menu-d">翻轉記憶卡片</span>
-          <span class="menu-b" id="mb-vocab">60語</span>
+          <span class="menu-b" id="mb-vocab">0語</span>
         </button>
         <button class="menu-card mg" onclick="showGrammarList()">
           <div class="menu-em">📖</div>
           <span class="menu-t">文法一覧</span>
           <span class="menu-d">文法複習清單</span>
-          <span class="menu-b">30項</span>
+          <span class="menu-b" id="mb-grammar">0項</span>
         </button>
         <button class="menu-card mv" onclick="showVocabList()">
           <div class="menu-em">📋</div>
           <span class="menu-t">単語一覧</span>
           <span class="menu-d">依熟練度篩選</span>
-          <span class="menu-b">全60語</span>
+          <span class="menu-b" id="mb-vocab-list">0語</span>
         </button>
         <button class="menu-card mw" onclick="showWeakReview()">
           <div class="menu-em">💪</div>
@@ -358,7 +362,7 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
     <div class="top-bar">
       <button class="back-btn" onclick="goHome()">‹ 戻る</button>
       <span class="top-title">文法一覧</span>
-      <span class="badge-sm">30項</span>
+      <span class="badge-sm" id="gl-count"></span>
     </div>
     <div class="filter-row" id="gl-filters"></div>
     <div class="scroll-area" id="gl-list" style="padding-bottom:20px;"></div>
@@ -393,6 +397,7 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
       <span class="top-title">単語クイズ</span>
       <span class="badge-sm" id="vq-count"></span>
     </div>
+    <div class="filter-row" id="vq-filters"></div>
     <div class="prog-track"><div class="prog-fill prog-red" id="vq-prog" style="width:0%"></div></div>
     <div class="scroll-area" id="vq-body"></div>
   </div>
@@ -404,6 +409,7 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
       <span class="top-title">文法テスト</span>
       <span class="badge-sm" id="gq-count"></span>
     </div>
+    <div class="filter-row" id="gq-filters"></div>
     <div class="prog-track"><div class="prog-fill prog-purple" id="gq-prog" style="width:0%"></div></div>
     <div class="scroll-area" id="gq-body"></div>
   </div>
@@ -417,10 +423,21 @@ html,body{height:100%;overflow:hidden;background:#1A1A2E;font-family:'Noto Sans 
     </div>
     <div class="result-body" id="result-body"></div>
   </div>
+
+  <!-- GROUP SELECT -->
+  <div class="screen hidden" id="scr-group-select">
+    <div class="top-bar">
+      <button class="back-btn" onclick="goHome()">‹ 戻る</button>
+      <span class="top-title" id="gs-title">分組選擇</span>
+      <span class="badge-sm"></span>
+    </div>
+    <div class="scroll-area" id="gs-list" style="padding-bottom:20px;"></div>
+  </div>
 </div>
 
 <script src="data/vocab.js"></script>
 <script src="data/grammar.js"></script>
+<script src="data/vocab_groups.js"></script>
 <script>
 // ═══════════════════════════════════════════
 // STATE
@@ -430,6 +447,8 @@ let grammarProf = {};
 let currentStatView = 'vocab';
 let vcIdx = 0;
 let vcFlipped = false;
+let activeVocabGroup = null; // null = all groups
+let pendingGroupAction = null; // 'card' | 'quiz'
 
 const PROF_LEVELS = ['mastered','familiar','ok','unknown'];
 const PROF_LABELS = {mastered:'🟢 非常熟悉',familiar:'🔵 熟悉',ok:'🟡 還行',unknown:'🔴 不熟',none:'⚪ 未學習'};
@@ -474,47 +493,82 @@ function setStatView(view){
 }
 
 function updateHomeStats(){
-  let m=0,f=0,o=0,u=0,weak=0;
-  if(currentStatView === 'vocab'){
-    VOCAB.forEach(v=>{
-      const p=proficiency[v.id]||'none';
-      if(p==='mastered')m++;
-      else if(p==='familiar')f++;
-      else if(p==='ok')o++;
-      else if(p==='unknown'){u++;}
-    });
-    // Weak count is always combined for the badge on the card, but let's see
-    VOCAB.forEach(v=>{ if((proficiency[v.id]||'none')==='unknown'||(proficiency[v.id]||'none')==='ok') weak++; });
-    GRAMMAR.forEach(g=>{ if((grammarProf[g.id]||'none')==='unknown'||(grammarProf[g.id]||'none')==='ok') weak++; });
-  } else {
-    GRAMMAR.forEach(g=>{
-      const p=grammarProf[g.id]||'none';
-      if(p==='mastered')m++;
-      else if(p==='familiar')f++;
-      else if(p==='ok')o++;
-      else if(p==='unknown'){u++;}
-    });
-    VOCAB.forEach(v=>{ if((proficiency[v.id]||'none')==='unknown'||(proficiency[v.id]||'none')==='ok') weak++; });
-    GRAMMAR.forEach(g=>{ if((grammarProf[g.id]||'none')==='unknown'||(grammarProf[g.id]||'none')==='ok') weak++; });
-  }
-  
-  document.getElementById('stat-mastered').textContent=m;
-  document.getElementById('stat-familiar').textContent=f;
-  document.getElementById('stat-unknown').textContent=u;
+  const counts={mastered:0,familiar:0,ok:0,unknown:0,none:0};
+  const items = currentStatView==='vocab' ? VOCAB : GRAMMAR;
+  const store = currentStatView==='vocab' ? proficiency : grammarProf;
+  items.forEach(it=>{ counts[store[it.id]||'none']++; });
+  document.getElementById('stat-mastered').textContent=counts.mastered;
+  document.getElementById('stat-familiar').textContent=counts.familiar;
+  document.getElementById('stat-ok').textContent=counts.ok;
+  document.getElementById('stat-unknown').textContent=counts.unknown;
+  document.getElementById('stat-none').textContent=counts.none;
+  // combined weak count for the home card badge
+  let weak=0;
+  VOCAB.forEach(v=>{ const p=proficiency[v.id]||'none'; if(p==='unknown'||p==='ok') weak++; });
+  GRAMMAR.forEach(g=>{ const p=grammarProf[g.id]||'none'; if(p==='unknown'||p==='ok') weak++; });
   document.getElementById('mb-weak').textContent=weak+'項';
+  document.getElementById('mb-vocab').textContent=VOCAB.length+'語';
+  document.getElementById('mb-grammar').textContent=GRAMMAR.length+'項';
+  document.getElementById('mb-vocab-list').textContent='全'+VOCAB.length+'語';
+}
+
+function jumpToFiltered(level){
+  if(currentStatView==='vocab'){
+    vlFilter=level;
+    showVocabList();
+  } else {
+    glFilter=level;
+    showGrammarList();
+  }
+}
+
+// ═══════════════════════════════════════════
+// GROUP SELECTION
+// ═══════════════════════════════════════════
+function getVocabPool(){
+  if(!activeVocabGroup) return VOCAB;
+  const ids=new Set(VOCAB_GROUPS[activeVocabGroup]);
+  return VOCAB.filter(v=>ids.has(v.id));
+}
+function showVocabCard(){ showGroupSelect('card'); }
+function showGroupSelect(action){
+  pendingGroupAction=action;
+  const label=action==='card'?'単語カード':'単語クイズ';
+  document.getElementById('gs-title').textContent=label+'—分組選擇';
+  showScreen('scr-group-select');
+  const entries=[['全部 (全分組)',null],...Object.entries(VOCAB_GROUPS)];
+  document.getElementById('gs-list').innerHTML=
+    '<div class="section-label">選擇要練習的分組</div>'+
+    entries.map(([name,ids])=>{
+      const count=ids?ids.length:VOCAB.length;
+      const active=activeVocabGroup===(ids?name:null);
+      return `<button class="vocab-item" style="${active?'background:#fff0f3;':''}" onclick="selectGroup(${ids===null?'null':"'"+name.replace(/'/g,"\\'")+"\'"})">
+        <div class="vi-left" style="min-width:0;flex:1;"><div class="vi-word" style="font-size:15px;">${name}</div></div>
+        <div style="font-size:13px;color:var(--muted);margin-right:8px;white-space:nowrap;">${count}語</div>
+        <div style="color:#ccc;font-size:18px;flex-shrink:0;">›</div>
+      </button>`;
+    }).join('');
+}
+function selectGroup(name){
+  activeVocabGroup=(name===null||name==='null')?null:name;
+  if(pendingGroupAction==='card') _startVocabCard();
+  else _startVocabQuiz();
+}
+function _startVocabCard(){
+  showScreen('scr-vocab-card');
+  const title=activeVocabGroup||'単語カード';
+  document.querySelector('#scr-vocab-card .top-title').textContent=title;
+  vcIdx=0; vcFlipped=false;
+  renderVocabCard();
 }
 
 // ═══════════════════════════════════════════
 // VOCAB CARD
 // ═══════════════════════════════════════════
-function showVocabCard(){
-  showScreen('scr-vocab-card');
-  vcIdx=0; vcFlipped=false;
-  renderVocabCard();
-}
 function renderVocabCard(){
-  const v = VOCAB[vcIdx];
-  const total = VOCAB.length;
+  const pool=getVocabPool();
+  const v = pool[vcIdx];
+  const total = pool.length;
   document.getElementById('vc-count').textContent=(vcIdx+1)+'/'+total;
   document.getElementById('vc-prog').style.width=(((vcIdx+1)/total)*100)+'%';
   document.getElementById('fc').classList.remove('flipped');
@@ -535,7 +589,8 @@ function renderVocabCard(){
       <div class="ex-zh">${e.zh}</div>
     </div>`).join('');
   // seen count
-  const rated = VOCAB.filter(v=>proficiency[v.id]).length;
+  const pool2=getVocabPool();
+  const rated = pool2.filter(v=>proficiency[v.id]).length;
   document.getElementById('vc-seen').textContent=rated+' 已評';
 }
 function flipCard(){
@@ -543,12 +598,13 @@ function flipCard(){
   document.getElementById('fc').classList.toggle('flipped',vcFlipped);
 }
 function setProfVocab(level){
-  proficiency[VOCAB[vcIdx].id]=level;
+  proficiency[getVocabPool()[vcIdx].id]=level;
   saveState();
   vcGo(1);
 }
 function vcGo(dir){
-  vcIdx=(vcIdx+dir+VOCAB.length)%VOCAB.length;
+  const len=getVocabPool().length;
+  vcIdx=(vcIdx+dir+len)%len;
   renderVocabCard();
 }
 
@@ -642,7 +698,14 @@ function setVocabProfDetail(id,level){
 let glFilter='all';
 function showGrammarList(){
   showScreen('scr-grammar-list');
-  const filters=[{key:'all',label:'全部'},{key:'mastered',label:'🟢熟悉'},{key:'unknown',label:'🔴不熟'},{key:'none',label:'⚪未學'}];
+  const filters=[
+    {key:'all',label:'全部'},
+    {key:'mastered',label:'🟢 非常熟悉'},
+    {key:'familiar',label:'🔵 熟悉'},
+    {key:'ok',label:'🟡 還行'},
+    {key:'unknown',label:'🔴 不熟'},
+    {key:'none',label:'⚪ 未學習'}
+  ];
   document.getElementById('gl-filters').innerHTML=filters.map(f=>
     `<button class="filter-chip${glFilter===f.key?' fc-purple':''}" onclick="setGlFilter('${f.key}')">${f.label}</button>`
   ).join('');
@@ -650,6 +713,7 @@ function showGrammarList(){
     const p=grammarProf[g.id]||'none';
     return glFilter==='all'||p===glFilter;
   });
+  document.getElementById('gl-count').textContent=filtered.length+'項';
   document.getElementById('gl-list').innerHTML=filtered.map(g=>{
     const p=grammarProf[g.id]||'none';
     return `<button class="g-item" onclick="showGrammarDetail(${g.id})">
@@ -746,18 +810,51 @@ function showWeakReview(){
 // VOCAB QUIZ
 // ═══════════════════════════════════════════
 let vqQuestions=[], vqIdx=0, vqScore=0, vqChosen=null;
+let vqLevelFilter={mastered:true,familiar:true,ok:true,unknown:true,none:true};
+const QUIZ_LEVEL_CHIPS=[
+  {key:'mastered',label:'🟢'},
+  {key:'familiar',label:'🔵'},
+  {key:'ok',label:'🟡'},
+  {key:'unknown',label:'🔴'},
+  {key:'none',label:'⚪'}
+];
 function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
 function genOpts(correct, pool, key){
   const others=shuffle(pool.filter(x=>x[key]!==correct[key])).slice(0,3);
   return shuffle([correct,...others]).map(x=>x[key]);
 }
-function showVocabQuiz(){
-  showScreen('scr-vocab-quiz');
-  vqQuestions=shuffle(VOCAB).slice(0,15);
+function renderVqFilters(){
+  document.getElementById('vq-filters').innerHTML=QUIZ_LEVEL_CHIPS.map(c=>
+    `<button class="filter-chip${vqLevelFilter[c.key]?' fc-active':''}" onclick="toggleVqFilter('${c.key}')">${c.label}</button>`
+  ).join('');
+}
+function toggleVqFilter(key){
+  vqLevelFilter[key]=!vqLevelFilter[key];
+  renderVqFilters();
+  regenerateVQ();
+}
+function regenerateVQ(){
+  const base=getVocabPool();
+  const pool=base.filter(v=>vqLevelFilter[proficiency[v.id]||'none']);
+  vqQuestions=shuffle(pool).slice(0,15);
   vqIdx=0; vqScore=0; vqChosen=null;
   renderVQ();
 }
+function showVocabQuiz(){ showGroupSelect('quiz'); }
+function _startVocabQuiz(){
+  showScreen('scr-vocab-quiz');
+  const title=activeVocabGroup||'単語クイズ';
+  document.querySelector('#scr-vocab-quiz .top-title').textContent=title;
+  renderVqFilters();
+  regenerateVQ();
+}
 function renderVQ(){
+  if(!vqQuestions.length){
+    document.getElementById('vq-count').textContent='0/0';
+    document.getElementById('vq-prog').style.width='0%';
+    document.getElementById('vq-body').innerHTML='<div class="empty"><div class="empty-em">🎯</div><div class="empty-t">沒有符合條件的單字</div><div class="empty-d">請至少選擇一個熟練度</div></div>';
+    return;
+  }
   const q=vqQuestions[vqIdx];
   const total=vqQuestions.length;
   document.getElementById('vq-count').textContent=(vqIdx+1)+'/'+total;
@@ -802,13 +899,35 @@ function showVQResult(){
 // GRAMMAR QUIZ
 // ═══════════════════════════════════════════
 let gqQuestions=[], gqIdx=0, gqScore=0, gqChosen=null;
-function showGrammarQuiz(){
-  showScreen('scr-grammar-quiz');
-  gqQuestions=shuffle(GRAMMAR).slice(0,10);
+let gqLevelFilter={mastered:true,familiar:true,ok:true,unknown:true,none:true};
+function renderGqFilters(){
+  document.getElementById('gq-filters').innerHTML=QUIZ_LEVEL_CHIPS.map(c=>
+    `<button class="filter-chip${gqLevelFilter[c.key]?' fc-purple':''}" onclick="toggleGqFilter('${c.key}')">${c.label}</button>`
+  ).join('');
+}
+function toggleGqFilter(key){
+  gqLevelFilter[key]=!gqLevelFilter[key];
+  renderGqFilters();
+  regenerateGQ();
+}
+function regenerateGQ(){
+  const pool=GRAMMAR.filter(g=>gqLevelFilter[grammarProf[g.id]||'none']);
+  gqQuestions=shuffle(pool).slice(0,10);
   gqIdx=0; gqScore=0; gqChosen=null;
   renderGQ();
 }
+function showGrammarQuiz(){
+  showScreen('scr-grammar-quiz');
+  renderGqFilters();
+  regenerateGQ();
+}
 function renderGQ(){
+  if(!gqQuestions.length){
+    document.getElementById('gq-count').textContent='0/0';
+    document.getElementById('gq-prog').style.width='0%';
+    document.getElementById('gq-body').innerHTML='<div class="empty"><div class="empty-em">🎯</div><div class="empty-t">沒有符合條件的文法</div><div class="empty-d">請至少選擇一個熟練度</div></div>';
+    return;
+  }
   const q=gqQuestions[gqIdx];
   const total=gqQuestions.length;
   document.getElementById('gq-count').textContent=(gqIdx+1)+'/'+total;
